@@ -1,9 +1,8 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { PASSWORD, USER } from '$env/static/private';
+import { PASSWORD, USER, RPC_SERVER } from '$env/static/private';
 
 export const POST: RequestHandler = async ({ request }) => {
-	const rpcServer = 'http://192.168.0.101:8332';
 	const headers = {
 		'Content-Type': 'text/plain',
 		// @ts-ignore
@@ -14,7 +13,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	console.log('Sending RPC request:', body);
 
-	const rpcResponse = await fetch(rpcServer, {
+	const rpcResponse = await fetch(RPC_SERVER, {
 		method: 'POST',
 		headers: headers,
 		body: JSON.stringify(body)
