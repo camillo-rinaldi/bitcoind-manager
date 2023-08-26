@@ -1,44 +1,34 @@
 <script lang="ts">
-    import {onMount} from 'svelte';
-    import BlockDate from "./components/BlockDate.svelte";
+    import { onMount } from 'svelte';
+    import Block from './components/Block.svelte';
+    import {getBlockCount, getBlockDetails} from '$lib/bitcoinApi';
 
+    let blocks = [];
+    let latestBlockNumber: number | null = null;
 
-    let blockCount: number | null = null
+    async function getLatestBlocks() {
+        const blockCount = await getBlockCount();
+        if (blockCount === latestBlockNumber) {
+            return;
+        }
+        latestBlockNumber = blockCount;
 
-    async function getBlockCount() {
-        const rpcBody = {
-            jsonrpc: "1.0",
-            id: "test",
-            method: "getblockcount",
-            params: []
-        };
-
-
-        try {
-            const response = await fetch('/api/bitcoind', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(rpcBody)
-            });
-
-            const data = await response.json();
-            blockCount = data.result;
-        } catch (e) {
-            //
+        const newBlocks = [];
+        for (let i = 4; i >= 0; i--) {
+            const blockNumber = blockCount - i;
+            const blockDetails = await getBlockDetails(blockNumber);
+            newBlocks.push({ blockNumber, ...blockDetails });
         }
 
+        // Update the blocks array with the new blocks
+        blocks = newBlocks;
     }
 
-    let intervalId;
-
     onMount(() => {
-        // Fetch the block count immediately upon mounting
-        getBlockCount();
+        getLatestBlocks();
 
         // Set an interval to fetch the block count every 5 seconds
-        intervalId = setInterval(getBlockCount, 5000);
+        const intervalId = setInterval(getLatestBlocks, 5000);
 
         // Cleanup the interval when the component is destroyed
         return () => {
@@ -47,15 +37,10 @@
     });
 </script>
 
-<div class="min-h-screen flex items-center justify-center bg-gray-100">
-    <div class="bg-white p-8 rounded-xl shadow-md w-96">
-        <h1 class="text-2xl font-semibold mb-4">Bitcoin Core Info</h1>
-        <BlockDate blockHeight="{blockCount}" />
-        <div class="flex items-center justify-between">
-            <p class="text-xl font-medium">Block Count: <span class="text-blue-500">{blockCount ?? "Loading..."}</span></p>
-            <button on:click={getBlockCount} class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50">
-                Refresh
-            </button>
-        </div>
+<div class="min-h-screen flex flex-col items-center justify-center bg-gray-100 space-y-6">
+    <div class="w-full max-w-screen-lg flex justify-between mb-6">
+        {#each blocks as block (block.blockNumber)}
+            <Block blockNumber={block.blockNumber} blockDate={block.blockDate} txCount={block.txCount} />
+        {/each}
     </div>
 </div>

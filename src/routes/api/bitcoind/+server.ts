@@ -11,8 +11,6 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	const body = await request.json();
 
-	console.log('Sending RPC request:', body);
-
 	const rpcResponse = await fetch(RPC_SERVER, {
 		method: 'POST',
 		headers: headers,
