@@ -9,9 +9,11 @@
     async function getLatestBlocks() {
         const blockCount = await getBlockCount();
         if (blockCount === latestBlockNumber) {
+            console.log('No new blocks');
             return;
         }
         latestBlockNumber = blockCount;
+        console.log('New block count: ', blockCount);
 
         const newBlocks = [];
         for (let i = 4; i >= 0; i--) {
@@ -26,11 +28,7 @@
 
     onMount(() => {
         getLatestBlocks();
-
-        // Set an interval to fetch the block count every 5 seconds
-        const intervalId = setInterval(getLatestBlocks, 5000);
-
-        // Cleanup the interval when the component is destroyed
+        const intervalId = setInterval(getLatestBlocks, 30000);
         return () => {
             clearInterval(intervalId);
         };
@@ -38,7 +36,11 @@
 </script>
 
 <div class="min-h-screen flex flex-col items-center justify-center bg-gray-100 space-y-6">
+    <h1 class="font-bold text-3xl">Bitcoin Core Manager</h1>
     <div class="w-full max-w-screen-lg flex justify-between mb-6">
+        {#if blocks.length === 0}
+            <div class="text-gray-500 my-10 mx-auto text-1xl">Loading...</div>
+        {/if}
         {#each blocks as block (block.blockNumber)}
             <Block blockNumber={block.blockNumber} blockDate={block.blockDate} txCount={block.txCount} />
         {/each}
