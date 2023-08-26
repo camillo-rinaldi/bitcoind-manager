@@ -4,7 +4,7 @@
     export let txCount: number;
 </script>
 
-<div class="bg-gray-200 p-4 rounded shadow-md">
+<div class="bg-gray-200 p-6 shadow-md rounded-l">
     <p class="font-bold">Block: {blockNumber}</p>
     <p>Date: {blockDate}</p>
     <p>Transactions: {txCount}</p>

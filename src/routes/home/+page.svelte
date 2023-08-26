@@ -2,6 +2,7 @@
     import { onMount } from 'svelte';
     import Block from './components/Block.svelte';
     import {getBlockCount, getBlockDetails} from '$lib/bitcoinApi';
+    import { slide } from 'svelte/transition';
 
     let blocks = [];
     let latestBlockNumber: number | null = null;
@@ -24,25 +25,29 @@
 
         // Update the blocks array with the new blocks
         blocks = newBlocks;
+        console.log('New blocks: ', blocks);
+    }
+
+    async function fetchBlocksPeriodically() {
+        await getLatestBlocks();
+        setTimeout(fetchBlocksPeriodically, 30000);
     }
 
     onMount(() => {
-        getLatestBlocks();
-        const intervalId = setInterval(getLatestBlocks, 30000);
-        return () => {
-            clearInterval(intervalId);
-        };
+        fetchBlocksPeriodically();
     });
 </script>
 
-<div class="min-h-screen flex flex-col items-center justify-center bg-gray-100 space-y-6">
-    <h1 class="font-bold text-3xl">Bitcoin Core Manager</h1>
-    <div class="w-full max-w-screen-lg flex justify-between mb-6">
+<div class="min-h-screen flex flex-col items-center justify-center text-neutral-600 space-y-6">
+    <h1 class="font-extrabold text-4xl mb-6 border-b-2 border-white pb-2">Bitcoin Core Manager</h1>
+    <div class="mb-6 grid grid-cols-5 gap-x-5 bg-neutral-300 p-6 rounded-xl shadow-lg text-black">
         {#if blocks.length === 0}
-            <div class="text-gray-500 my-10 mx-auto text-1xl">Loading...</div>
+            <div class="col-span-5 text-gray-600 p-10 mx-auto text-xl animate-pulse">Loading...</div>
         {/if}
         {#each blocks as block (block.blockNumber)}
-            <Block blockNumber={block.blockNumber} blockDate={block.blockDate} txCount={block.txCount} />
+            <div transition:slide="{{duration: 300}}">
+                <Block blockNumber={block.blockNumber} blockDate={block.blockDate} txCount={block.txCount} />
+            </div>
         {/each}
     </div>
 </div>
